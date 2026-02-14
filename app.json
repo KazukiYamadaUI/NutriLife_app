@@ -13,7 +13,17 @@
       "backgroundColor": "#e8f5ec"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kazuki.nutrilife.app",
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.access": ["health-records"]
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSHealthShareUsageDescription": "歩数データを取得して、アプリ内の活動ログを表示するために使用します。",
+        "NSHealthUpdateUsageDescription": "アプリで測定したデータをヘルスケアに保存するために使用します。"
+      }
     },
     "android": {
       "adaptiveIcon": {
