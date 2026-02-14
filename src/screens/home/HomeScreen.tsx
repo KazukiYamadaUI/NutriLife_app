@@ -6,6 +6,7 @@ import { useApp } from '@/context/AppContext';
 import { RootStackParamList } from '@/types';
 import { Card } from '@/components/Card';
 import { BigButton } from '@/components/BigButton';
+import { AppLogo } from '@/components/AppLogo';
 import { CameraIcon, ImageIcon, HeartIcon } from '@/components/Icons';
 import { tokens } from '@/theme/tokens';
 
@@ -28,26 +29,37 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.bg }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-        <Text
+        <View
           style={{
-            color: tokens.textMuted,
-            fontSize: tokens.fontSub,
-            fontWeight: '500',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 8,
           }}
         >
-          {today.getFullYear()}年{today.getMonth() + 1}月{today.getDate()}日（
-          {dn[today.getDay()]}）
-        </Text>
-        <Text
-          style={{
-            fontSize: tokens.fontTitle + 2,
-            fontWeight: '800',
-            color: tokens.text,
-            marginBottom: 20,
-          }}
-        >
-          {gr}、{user?.displayName || 'ユーザー'}さん
-        </Text>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: tokens.textMuted,
+                fontSize: tokens.fontSub,
+                fontWeight: '500',
+              }}
+            >
+              {today.getFullYear()}年{today.getMonth() + 1}月{today.getDate()}日（
+              {dn[today.getDay()]}）
+            </Text>
+            <Text
+              style={{
+                fontSize: tokens.fontTitle + 2,
+                fontWeight: '800',
+                color: tokens.text,
+              }}
+            >
+              {gr}、{user?.displayName || 'ユーザー'}さん
+            </Text>
+          </View>
+          <AppLogo size={48} />
+        </View>
 
         {healthData?.connected && (
           <Card

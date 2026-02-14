@@ -2,10 +2,10 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
 // In development, change this to your local server address
-// For Android emulator: http://10.0.2.2:3000
-// For iOS simulator: http://localhost:3000
+// For Android emulator: http://10.0.2.2:3001
+// For iOS simulator: http://localhost:3001
 // For physical device: use your computer's local IP
-const BASE_URL = __DEV__ ? 'http://localhost:3000/api' : 'https://api.nutrilife.app/api';
+const BASE_URL = __DEV__ ? 'http://localhost:3001/api' : 'https://api.nutrilife.app/api';
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView } from 'react-native';
 import { useApp } from '@/context/AppContext';
+import { AppLogo } from '@/components/AppLogo';
 import { LockIcon } from '@/components/Icons';
 import { tokens } from '@/theme/tokens';
 
@@ -32,7 +33,7 @@ export const AnalyzingScreen: React.FC = () => {
           gap: 24,
         }}
       >
-        <Text style={{ fontSize: 56 }}>🔍</Text>
+        <AppLogo size={80} />
         <Text
           style={{
             fontSize: tokens.fontTitle,

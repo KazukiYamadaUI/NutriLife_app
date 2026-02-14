@@ -63,7 +63,7 @@ export const HealthKitScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.bg }}>
-      <Header title="ヘルスケア連携" onBack={() => navigation.goBack()} />
+      <Header title="ヘルスケアとつなげる" onBack={() => navigation.goBack()} />
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
         <Card
           style={{
@@ -186,7 +186,7 @@ export const HealthKitScreen: React.FC<Props> = ({ navigation }) => {
             icon={syncing ? undefined : <LinkIcon size={24} color="#fff" />}
             color={tokens.blue}
           >
-            {syncing ? '接続中...' : 'ヘルスケアと連携する'}
+            {syncing ? '接続中...' : 'ヘルスケアとつなげる'}
           </BigButton>
         ) : (
           <TouchableOpacity
@@ -207,7 +207,7 @@ export const HealthKitScreen: React.FC<Props> = ({ navigation }) => {
                 color: tokens.danger,
               }}
             >
-              連携を解除する
+              ヘルスケアとの接続をやめる
             </Text>
           </TouchableOpacity>
         )}

@@ -133,7 +133,7 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
           >
             <ImageIcon size={20} color="#fff" />
             <Text style={{ fontSize: tokens.fontSub, color: '#fff', fontWeight: '700' }}>
-              アルバム
+              写真を選ぶ
             </Text>
           </View>
         </View>
@@ -142,7 +142,7 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
           <TouchableOpacity style={styles.filePickBtn} onPress={handlePickImage}>
             <ImageIcon size={24} color={tokens.green} />
             <Text style={{ fontSize: tokens.fontBody, fontWeight: '700', color: tokens.green }}>
-              端末から写真を選択
+              スマホの写真から選ぶ
             </Text>
           </TouchableOpacity>
           <Text
@@ -225,7 +225,7 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
               color={tokens.orangeBg}
               style={{ minHeight: 64 }}
             >
-              {selImg ? `「${selImg.label}」を解析する` : '写真を選んでください'}
+              {selImg ? `「${selImg.label}」をしらべる` : '写真を選んでね'}
             </BigButton>
           )}
         </View>
@@ -290,7 +290,7 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
         >
           <ImageIcon size={18} color="rgba(255,255,255,0.7)" />
           <Text style={{ fontSize: tokens.fontSub, color: 'rgba(255,255,255,0.7)' }}>
-            アルバム
+            写真を選ぶ
           </Text>
         </TouchableOpacity>
       </View>
@@ -329,7 +329,7 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
               }}
             >
               <Text style={{ color: '#fff', fontWeight: '700' }}>
-                カメラの許可を求める
+                カメラを使えるようにする
               </Text>
             </TouchableOpacity>
           </View>

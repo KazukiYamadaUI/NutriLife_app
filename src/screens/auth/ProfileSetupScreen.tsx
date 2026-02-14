@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '@/context/AuthContext';
 import { RootStackParamList } from '@/types';
@@ -150,9 +150,18 @@ export const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
           />
         ))}
       </View>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-        {step === 0 ? renderStep0() : renderStep1()}
-      </ScrollView>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 20 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {step === 0 ? renderStep0() : renderStep1()}
+        </ScrollView>
+      </KeyboardAvoidingView>
       <View style={{ flexDirection: 'row', gap: 10, padding: 20, paddingBottom: 28 }}>
         {step > 0 && (
           <BigButton

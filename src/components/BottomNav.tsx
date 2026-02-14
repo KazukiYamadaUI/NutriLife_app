@@ -12,8 +12,8 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ current, onNav }) => {
   const items = [
     { key: 'home', label: 'ホーム', Icon: HomeIcon },
-    { key: 'record', label: 'きろく', Icon: ChartIcon },
-    { key: 'settings', label: 'せってい', Icon: SettingsIcon },
+    { key: 'record', label: '記録', Icon: ChartIcon },
+    { key: 'settings', label: '設定', Icon: SettingsIcon },
   ];
 
   return (

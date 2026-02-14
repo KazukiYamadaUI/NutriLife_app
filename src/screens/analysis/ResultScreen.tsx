@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, SafeAreaView } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useApp } from '@/context/AppContext';
 import { RootStackParamList } from '@/types';
@@ -14,9 +14,25 @@ type Props = {
 export const ResultScreen: React.FC<Props> = ({ navigation }) => {
   const { currentAnalysis, sendFeedback } = useApp();
 
+  useEffect(() => {
+    if (!currentAnalysis) {
+      navigation.goBack();
+    }
+  }, [currentAnalysis, navigation]);
+
   if (!currentAnalysis) {
-    navigation.goBack();
-    return null;
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: tokens.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <ActivityIndicator size="large" color={tokens.green} />
+      </SafeAreaView>
+    );
   }
 
   return (

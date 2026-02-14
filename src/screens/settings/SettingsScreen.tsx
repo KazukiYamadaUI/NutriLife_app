@@ -86,7 +86,7 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.bg }}>
-      <Header title="せってい" />
+      <Header title="設定" />
       <ScrollView style={{ flex: 1 }}>
         <Card
           style={{
@@ -134,12 +134,12 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.sectionLabel}>アカウント</Text>
         <View style={styles.menuGroup}>
           <MenuItem
-            label="プロフィール編集"
+            label="自分の情報をなおす"
             icon={<UserIcon size={22} color={tokens.green} />}
             onPress={() => navigation.navigate('ProfileEdit')}
           />
           <MenuItem
-            label="通知設定"
+            label="お知らせの設定"
             icon={<BellIcon size={22} color={tokens.green} />}
             onPress={() => {}}
           />
@@ -148,15 +148,15 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.sectionLabel}>AI解析をもっと正確に</Text>
         <View style={styles.menuGroup}>
           <MenuItem
-            label="食事量・運動量"
+            label="食事と運動のめやす"
             icon={<ActivityIcon size={22} color={tokens.orange} />}
             desc="ふだんの生活スタイルを教えてください"
             onPress={() => navigation.navigate('Lifestyle')}
           />
           <MenuItem
-            label="ヘルスケア連携"
+            label="ヘルスケアとつなげる"
             icon={<HeartIcon size={22} color={tokens.danger} />}
-            desc={healthData?.connected ? '連携中 ✓' : 'iOSヘルスケアと接続'}
+            desc={healthData?.connected ? '接続中 ✓' : 'iOSヘルスケアと接続'}
             tag={healthData?.connected ? 'ON' : ''}
             onPress={() => navigation.navigate('HealthKit')}
           />

@@ -4,11 +4,10 @@ import { tokens } from './tokens';
 export const styles = StyleSheet.create({
   // Auth
   authContainer: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 28,
-    backgroundColor: tokens.greenLight,
   },
   authTitle: { fontSize: tokens.fontHero, fontWeight: '800', color: tokens.green, marginBottom: 4 },
   authSub: { color: tokens.textSub, fontSize: tokens.fontBody, marginBottom: 32, fontWeight: '500' },

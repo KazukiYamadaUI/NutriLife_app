@@ -139,10 +139,10 @@ export const RecordScreen: React.FC<Props> = ({ navigation }) => {
   const radarLabels = ['たんぱく質', '脂質', '炭水化物', '食物繊維', '減塩'];
   const rd = getRadarData(graphPeriod);
   const periodLabels: Record<string, string> = {
-    day: '日',
-    week: '週',
-    month: '月',
-    year: '年',
+    day: '1日',
+    week: '1週間',
+    month: '1か月',
+    year: '1年',
   };
   const periodDesc: Record<string, string> = {
     day: '選択した日',
@@ -150,11 +150,11 @@ export const RecordScreen: React.FC<Props> = ({ navigation }) => {
     month: '過去1ヶ月',
     year: '過去1年間',
   };
-  const cellW = (SCREEN_W - 32 - 18) / 7;
+  const cellW = (SCREEN_W - 32) / 7;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.bg }}>
-      <Header title="きろく" />
+      <Header title="記録" />
       <View
         style={{
           flexDirection: 'row',
@@ -341,115 +341,124 @@ export const RecordScreen: React.FC<Props> = ({ navigation }) => {
           {/* Divider */}
           <View style={{ height: 1, backgroundColor: tokens.border }} />
 
-          {/* Scrollable log list */}
+          {/* Scrollable log list - only show selected date */}
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-            {monthDates.map(
-              ({
-                date: dt,
-                dateStr: ds,
-                logs: dl,
-                totalCal,
-              }) => {
-                const isToday = ds === todayStr;
-                const isSel = ds === selDateStr;
-                return (
-                  <View key={ds} style={{ marginBottom: 16 }}>
-                    <View
+            {(() => {
+              const selEntry = monthDates.find((m) => m.dateStr === selDateStr);
+              const selDate = selEntry?.date || (selectedDate || today);
+              const selLogs = selEntry?.logs || [];
+              const selTotalCal = selEntry?.totalCal || 0;
+              const isSelToday = selDateStr === todayStr;
+
+              return (
+                <View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                      marginBottom: 12,
+                      paddingVertical: 6,
+                      borderBottomWidth: 2,
+                      borderBottomColor: tokens.green,
+                    }}
+                  >
+                    <Text
                       style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'baseline',
-                        marginBottom: 8,
-                        paddingVertical: 6,
-                        borderBottomWidth: isSel ? 2 : 0,
-                        borderBottomColor: tokens.green,
+                        fontSize: tokens.fontBody,
+                        fontWeight: '800',
+                        color: tokens.green,
                       }}
                     >
-                      <Text
-                        style={{
-                          fontSize: tokens.fontBody,
-                          fontWeight: '800',
-                          color: isSel ? tokens.green : tokens.text,
-                        }}
-                      >
-                        {isToday
-                          ? `${dt.getMonth() + 1}月${dt.getDate()}日（今日）`
-                          : `${dt.getMonth() + 1}月${dt.getDate()}日`}
-                      </Text>
-                      {dl.length > 0 && (
-                        <Text
-                          style={{
-                            fontSize: tokens.fontSub,
-                            color: tokens.green,
-                            fontWeight: '700',
-                          }}
-                        >
-                          合計 {totalCal} kcal
-                        </Text>
-                      )}
-                    </View>
-                    {dl.length === 0 ? (
+                      {isSelToday
+                        ? `${selDate.getMonth() + 1}月${selDate.getDate()}日（今日）`
+                        : `${selDate.getMonth() + 1}月${selDate.getDate()}日`}
+                    </Text>
+                    {selLogs.length > 0 && (
                       <Text
                         style={{
                           fontSize: tokens.fontSub,
-                          color: tokens.textMuted,
-                          paddingVertical: 12,
+                          color: tokens.green,
+                          fontWeight: '700',
+                        }}
+                      >
+                        合計 {selTotalCal} kcal
+                      </Text>
+                    )}
+                  </View>
+                  {selLogs.length === 0 ? (
+                    <View style={{ alignItems: 'center', paddingVertical: 32 }}>
+                      <Text style={{ fontSize: 40, marginBottom: 12 }}>📝</Text>
+                      <Text
+                        style={{
+                          fontSize: tokens.fontBody,
+                          fontWeight: '700',
+                          color: tokens.textSub,
+                          marginBottom: 4,
                         }}
                       >
                         記録なし
                       </Text>
-                    ) : (
-                      dl.map((l, i) => (
-                        <Card
-                          key={i}
-                          onPress={() =>
-                            navigation.navigate('MealDetail', { log: l })
-                          }
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 14,
-                            marginBottom: 8,
-                            padding: 14,
-                          }}
-                        >
-                          <ScoreRing score={l.score} size={48} />
-                          <View style={{ flex: 1 }}>
-                            <Text
-                              style={{
-                                fontWeight: '700',
-                                fontSize: tokens.fontBody,
-                                color: tokens.text,
-                              }}
-                            >
-                              {l.name}
-                            </Text>
-                            <Text
-                              style={{
-                                fontSize: tokens.fontSmall,
-                                color: tokens.textMuted,
-                              }}
-                            >
-                              {l.time}
-                            </Text>
-                          </View>
+                      <Text
+                        style={{
+                          fontSize: tokens.fontSub,
+                          color: tokens.textMuted,
+                        }}
+                      >
+                        この日の食事記録はありません
+                      </Text>
+                    </View>
+                  ) : (
+                    selLogs.map((l, i) => (
+                      <Card
+                        key={i}
+                        onPress={() =>
+                          navigation.navigate('MealDetail', { log: l })
+                        }
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 14,
+                          marginBottom: 8,
+                          padding: 14,
+                        }}
+                      >
+                        <ScoreRing score={l.score} size={48} />
+                        <View style={{ flex: 1 }}>
                           <Text
                             style={{
-                              fontSize: tokens.fontLarge,
-                              fontWeight: '800',
-                              color: tokens.green,
+                              fontWeight: '700',
+                              fontSize: tokens.fontBody,
+                              color: tokens.text,
                             }}
                           >
-                            {l.cal}
+                            {l.name}
                           </Text>
-                          <ChevronRIcon size={22} color={tokens.textMuted} />
-                        </Card>
-                      ))
-                    )}
-                  </View>
-                );
-              }
-            )}
+                          <Text
+                            style={{
+                              fontSize: tokens.fontSmall,
+                              color: tokens.textMuted,
+                            }}
+                          >
+                            {l.time}
+                          </Text>
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: tokens.fontLarge,
+                            fontWeight: '800',
+                            color: tokens.green,
+                          }}
+                        >
+                          {l.cal}
+                        </Text>
+                        <ChevronRIcon size={22} color={tokens.textMuted} />
+                      </Card>
+                    ))
+                  )}
+                </View>
+              );
+            })()}
           </ScrollView>
         </View>
       ) : (

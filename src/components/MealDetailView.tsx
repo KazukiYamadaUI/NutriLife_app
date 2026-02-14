@@ -156,9 +156,11 @@ export const MealDetailView: React.FC<MealDetailViewProps> = ({
         >
           {advice}
         </Text>
-        <Text style={{ fontSize: tokens.fontBody, color: tokens.danger, fontWeight: '700' }}>
-          不足しています → {missing}
-        </Text>
+        {missing ? (
+          <Text style={{ fontSize: tokens.fontBody, color: tokens.danger, fontWeight: '700' }}>
+            不足しています → {missing}
+          </Text>
+        ) : null}
       </Card>
 
       {showFeedback && (
