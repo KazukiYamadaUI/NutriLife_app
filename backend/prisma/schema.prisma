@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  displayName String   @default("ユーザー")
+  gender      String?
+  birthYear   String?
+  height      String?
+  weight      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mealLogs   MealLog[]
+  lifestyle  Lifestyle?
+  healthData HealthData[]
+  authCodes  AuthCode[]
+}
+
+model AuthCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  @@index([phone, code])
+}
+
+model MealLog {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  cal         Int
+  protein     Float
+  fat         Float
+  carbs       Float
+  fiber       Float
+  salt        Float
+  score       Int
+  ingredients String[]
+  advice      String?
+  missing     String?
+  praise      String?
+  imageUrl    String?
+  feedback    String?
+  date        String
+  time        String
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model Lifestyle {
+  id            String  @id @default(cuid())
+  userId        String  @unique
+  portionSize   String?
+  exerciseLevel String?
+  appetite      String?
+  mealFrequency String?
+  walkMinutes   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model HealthData {
+  id               String   @id @default(cuid())
+  userId           String
+  steps            Int?
+  heartRate        Int?
+  weight           Float?
+  bloodPressureSys Int?
+  bloodPressureDia Int?
+  sleepHours       Float?
+  syncedAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, syncedAt])
+}
