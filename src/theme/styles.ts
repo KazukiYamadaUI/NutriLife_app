@@ -124,24 +124,6 @@ export const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // Bottom nav
-  bottomNav: {
-    flexDirection: 'row',
-    borderTopWidth: 2,
-    borderTopColor: tokens.border,
-    backgroundColor: tokens.card,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 6,
-  },
-  bottomNavItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    minHeight: tokens.touchMin + 10,
-    paddingVertical: 8,
-  },
-  bottomNavLabel: { fontSize: tokens.fontSub },
-
   // Camera/Album
   modeBtn: {
     flex: 1,

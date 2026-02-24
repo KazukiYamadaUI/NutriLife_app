@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, Text, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CommonActions } from '@react-navigation/native';
 import { useApp } from '@/context/AppContext';
 import { RootStackParamList } from '@/types';
 import { Header } from '@/components/Header';
 import { MealDetailView } from '@/components/MealDetailView';
+import { BottomNav } from '@/components/BottomNav';
 import { tokens } from '@/theme/tokens';
 
 type Props = {
@@ -35,6 +37,23 @@ export const ResultScreen: React.FC<Props> = ({ navigation }) => {
     );
   }
 
+  const handleNav = (key: string) => {
+    const tabName = key === 'home' ? 'Home' : key === 'record' ? 'Record' : 'Settings';
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'Main',
+            state: {
+              routes: [{ name: tabName }],
+            },
+          },
+        ],
+      })
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.bg }}>
       <Header title="けっかを見る" onBack={() => navigation.popToTop()} />
@@ -45,6 +64,7 @@ export const ResultScreen: React.FC<Props> = ({ navigation }) => {
           onFeedback={(t) => sendFeedback('current', t)}
         />
       </ScrollView>
+      <BottomNav current="" onNav={handleNav} />
     </SafeAreaView>
   );
 };

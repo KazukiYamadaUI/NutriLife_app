@@ -168,17 +168,17 @@ export const ProfileSetupScreen: React.FC<Props> = ({ navigation }) => {
             onPress={() => setStep(step - 1)}
             color={tokens.card}
             textColor={tokens.text}
-            style={{ flex: 0, minWidth: 100, borderWidth: 2, borderColor: tokens.border }}
+            style={{ flex: 0, width: 'auto', minWidth: 100, borderWidth: 2, borderColor: tokens.border }}
           >
             もどる
           </BigButton>
         )}
         {step < totalSteps - 1 ? (
-          <BigButton onPress={() => setStep(step + 1)} disabled={!name} style={{ flex: 1 }}>
+          <BigButton onPress={() => setStep(step + 1)} disabled={!name} style={{ flex: 1, width: 'auto' }}>
             つぎへ →
           </BigButton>
         ) : (
-          <BigButton onPress={handleComplete} style={{ flex: 1 }}>
+          <BigButton onPress={handleComplete} style={{ flex: 1, width: 'auto' }}>
             はじめる →
           </BigButton>
         )}

@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import { View, TouchableOpacity, Text, Platform } from 'react-native';
 import { tokens } from '@/theme/tokens';
 import { HomeIcon, ChartIcon, SettingsIcon } from './Icons';
-import { styles } from '@/theme/styles';
 
 interface BottomNavProps {
   current: string;
@@ -12,22 +11,41 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ current, onNav }) => {
   const items = [
     { key: 'home', label: 'ホーム', Icon: HomeIcon },
-    { key: 'record', label: '記録', Icon: ChartIcon },
-    { key: 'settings', label: '設定', Icon: SettingsIcon },
+    { key: 'record', label: 'きろく', Icon: ChartIcon },
+    { key: 'settings', label: 'せってい', Icon: SettingsIcon },
   ];
 
   return (
-    <View style={styles.bottomNav}>
+    <View
+      style={{
+        flexDirection: 'row',
+        borderTopWidth: 2,
+        borderTopColor: tokens.border,
+        backgroundColor: tokens.card,
+        paddingBottom: Platform.OS === 'ios' ? 20 : 6,
+        height: Platform.OS === 'ios' ? 85 : 65,
+      }}
+    >
       {items.map(({ key, label, Icon }) => {
-        const a = current === key;
+        const active = current === key;
         return (
-          <TouchableOpacity key={key} onPress={() => onNav(key)} style={styles.bottomNavItem}>
-            <Icon size={26} color={a ? tokens.green : tokens.textMuted} />
+          <TouchableOpacity
+            key={key}
+            onPress={() => onNav(key)}
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 3,
+            }}
+          >
+            <Icon size={25} color={active ? tokens.green : tokens.textMuted} />
             <Text
-              style={[
-                styles.bottomNavLabel,
-                { color: a ? tokens.green : tokens.textMuted, fontWeight: a ? '700' : '500' },
-              ]}
+              style={{
+                fontSize: tokens.fontSub,
+                fontWeight: '600',
+                color: active ? tokens.green : tokens.textMuted,
+              }}
             >
               {label}
             </Text>

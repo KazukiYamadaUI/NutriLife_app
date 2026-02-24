@@ -1,0 +1,151 @@
+---
+name: llm-api-docs
+description: Use when implementing API calls to Claude, Gemini, or OpenAI. Triggers on SDK installation, API client creation, or LLM integration code.
+---
+
+# LLM API Documentation Reference
+
+## Overview
+
+**LLM APIを実装する前に、必ずContext7で最新の公式ドキュメントを取得する。** 学習データのカットオフにより古いモデル・パラメータを使用するリスクを排除。
+
+## Latest Models (2026-01)
+
+| Provider | Latest Models | Thinking/Reasoning |
+|----------|---------------|-------------------|
+| **Anthropic** | `claude-opus-4-5`, `claude-sonnet-4-5` | Extended Thinking |
+| **Google** | `gemini-3-pro`, `gemini-3-flash` | Thinking Mode |
+| **OpenAI** | `gpt-5.2`, `gpt-5.1`, `o3`, `o3-mini` | Reasoning Effort |
+
+**古いモデルを使わない:**
+- ❌ `claude-3-opus`, `claude-3-sonnet` → ✅ `claude-opus-4-5`, `claude-sonnet-4-5`
+- ❌ `gemini-1.5-pro`, `gemini-2.0-flash` → ✅ `gemini-3-pro`, `gemini-3-flash`
+- ❌ `gpt-4-turbo`, `gpt-4o` → ✅ `gpt-5.2`
+
+## Required Workflow
+
+**実装前に必ずContext7でドキュメント取得:**
+
+```
+# Claude API
+query-docs: libraryId="/websites/platform_claude_en_api", query="[実装内容]"
+
+# Gemini API
+query-docs: libraryId="/websites/ai_google_dev_api", query="[実装内容]"
+
+# OpenAI API
+query-docs: libraryId="/websites/platform_openai", query="[実装内容]"
+```
+
+## Thinking/Reasoning Mode Reference
+
+### Claude: Extended Thinking
+
+```typescript
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic();
+const response = await client.messages.create({
+  model: "claude-sonnet-4-5", // or claude-opus-4-5
+  max_tokens: 16000,
+  thinking: {
+    type: "enabled",
+    budget_tokens: 10000, // 最低1024以上、max_tokens未満
+  },
+  messages: [{ role: "user", content: "..." }],
+});
+
+// レスポンス: thinking block + text block
+for (const block of response.content) {
+  if (block.type === "thinking") {
+    console.log("Thinking:", block.thinking);
+  } else if (block.type === "text") {
+    console.log("Response:", block.text);
+  }
+}
+```
+
+### OpenAI: Reasoning Effort
+
+```typescript
+import OpenAI from "openai";
+
+const client = new OpenAI();
+
+// GPT-5.2 with reasoning
+const response = await client.chat.completions.create({
+  model: "gpt-5.2",
+  messages: [{ role: "user", content: "..." }],
+  reasoning: {
+    effort: "high", // none, low, medium, high, xhigh
+  },
+  // ⚠️ reasoning.effort が none 以外の場合:
+  // temperature, top_p, logprobs は使用不可
+  text: {
+    verbosity: "medium", // low, medium, high
+  },
+  max_output_tokens: 4000,
+});
+
+// reasoning.effort: "none" の場合のみ temperature 等が使える
+const simpleResponse = await client.chat.completions.create({
+  model: "gpt-5.2",
+  messages: [{ role: "user", content: "..." }],
+  reasoning: { effort: "none" },
+  temperature: 0.7,
+  top_p: 0.9,
+});
+```
+
+### Gemini: Thinking Mode
+
+```typescript
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const model = genAI.getGenerativeModel({
+  model: "gemini-3-flash", // or gemini-3-pro
+});
+
+// Thinking mode (最新APIを必ずContext7で確認)
+const result = await model.generateContent({
+  contents: [{ role: "user", parts: [{ text: "..." }] }],
+  generationConfig: {
+    // thinking パラメータは Context7 で最新仕様を確認
+  },
+});
+```
+
+## Quick Reference
+
+| Provider | Context7 Library ID | SDK Package |
+|----------|---------------------|-------------|
+| Claude | `/websites/platform_claude_en_api` | `@anthropic-ai/sdk` |
+| Gemini | `/websites/ai_google_dev_api` | `@google/generative-ai` |
+| OpenAI | `/websites/platform_openai` | `openai` |
+
+## Critical Differences
+
+| 項目 | Claude | OpenAI | Gemini |
+|------|--------|--------|--------|
+| **Thinking制御** | `budget_tokens` | `reasoning.effort` | Context7で確認 |
+| **温度パラメータ** | 常に使用可 | effort=none時のみ | 常に使用可 |
+| **出力制限** | `max_tokens` | `max_output_tokens` | `maxOutputTokens` |
+
+## Common Mistakes
+
+| 間違い | 対策 |
+|--------|------|
+| 古いモデル名を使用 | 上記Latest Modelsを参照 |
+| GPT-5.2でtemperature+reasoning併用 | effort=none以外では使用不可 |
+| Claude thinkingでbudget_tokens不足 | 最低1024以上を指定 |
+| 記憶に頼って実装 | **必ず**Context7で確認 |
+
+## Red Flags - STOP
+
+- 「このAPIは知っている」と思った
+- `gpt-4`, `claude-3`, `gemini-2` を書こうとした
+- ドキュメント確認せずに実装を開始した
+- 古いプロジェクトのコードをコピペした
+
+**すべて危険信号。Context7で最新ドキュメントを確認してから実装。**

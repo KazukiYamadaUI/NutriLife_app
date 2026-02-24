@@ -1,11 +1,16 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 import { User } from '@/types';
-import { authApi } from '@/api/auth';
+import {
+  getProfile,
+  upsertProfile,
+  updateProfile as updateProfileApi,
+} from '@/api/supabaseApi';
 
 interface AuthState {
   user: User | null;
-  token: string | null;
+  session: Session | null;
   isLoading: boolean;
   isProfileComplete: boolean;
 }
@@ -26,73 +31,103 @@ export const useAuth = () => {
   return ctx;
 };
 
+function toE164(phone: string): string {
+  if (phone.startsWith('+')) return phone;
+  if (phone.startsWith('0')) return '+81' + phone.slice(1);
+  return '+81' + phone;
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AuthState>({
     user: null,
-    token: null,
+    session: null,
     isLoading: true,
     isProfileComplete: false,
   });
 
-  // Restore session on app start
-  useEffect(() => {
-    const restore = async () => {
-      try {
-        const token = await SecureStore.getItemAsync('auth_token');
-        const userData = await SecureStore.getItemAsync('user_data');
-        const profileComplete = await SecureStore.getItemAsync('profile_complete');
-        if (token && userData) {
-          setState({
-            token,
-            user: JSON.parse(userData),
-            isLoading: false,
-            isProfileComplete: profileComplete === 'true',
-          });
-        } else {
-          setState((s) => ({ ...s, isLoading: false }));
-        }
-      } catch {
-        setState((s) => ({ ...s, isLoading: false }));
-      }
-    };
-    restore();
+  const loadProfile = useCallback(async (session: Session) => {
+    const result = await getProfile(session.user.id);
+    if (result) {
+      setState({
+        session,
+        user: result.user,
+        isLoading: false,
+        isProfileComplete: result.isProfileComplete,
+      });
+    } else {
+      setState({
+        session,
+        user: {
+          id: session.user.id,
+          phone: session.user.phone,
+          displayName: 'ユーザー',
+        },
+        isLoading: false,
+        isProfileComplete: false,
+      });
+    }
   }, []);
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        loadProfile(session);
+      } else {
+        setState((s) => ({ ...s, isLoading: false }));
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        loadProfile(session);
+      } else {
+        setState({ user: null, session: null, isLoading: false, isProfileComplete: false });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [loadProfile]);
+
   const sendCode = useCallback(async (phone: string) => {
-    await authApi.sendCode(phone);
+    const { error } = await supabase.auth.signInWithOtp({ phone: toE164(phone) });
+    if (error) throw new Error(error.message);
   }, []);
 
   const verifyCode = useCallback(async (phone: string, code: string) => {
-    const result = await authApi.verifyCode(phone, code);
-    const { token, user } = result;
-    await SecureStore.setItemAsync('auth_token', token);
-    await SecureStore.setItemAsync('user_data', JSON.stringify(user));
-    setState((s) => ({ ...s, user, token, isProfileComplete: false }));
+    const { error } = await supabase.auth.verifyOtp({
+      phone: toE164(phone),
+      token: code,
+      type: 'sms',
+    });
+    if (error) throw new Error(error.message);
   }, []);
 
   const updateUser = useCallback(
     async (user: User) => {
-      setState((s) => ({ ...s, user }));
-      await SecureStore.setItemAsync('user_data', JSON.stringify(user));
+      if (!state.session) return;
+      const updated = await updateProfileApi(state.session.user.id, user);
+      setState((s) => ({ ...s, user: updated }));
     },
-    []
+    [state.session]
   );
 
   const completeProfile = useCallback(
     async (profile: Partial<User>) => {
-      const updated = { ...state.user, ...profile } as User;
+      if (!state.session) return;
+      const updated = await upsertProfile(state.session.user.id, {
+        ...state.user,
+        ...profile,
+      });
       setState((s) => ({ ...s, user: updated, isProfileComplete: true }));
-      await SecureStore.setItemAsync('user_data', JSON.stringify(updated));
-      await SecureStore.setItemAsync('profile_complete', 'true');
     },
-    [state.user]
+    [state.session, state.user]
   );
 
   const logout = useCallback(async () => {
-    await SecureStore.deleteItemAsync('auth_token');
-    await SecureStore.deleteItemAsync('user_data');
-    await SecureStore.deleteItemAsync('profile_complete');
-    setState({ user: null, token: null, isLoading: false, isProfileComplete: false });
+    await supabase.auth.signOut();
+    setState({ user: null, session: null, isLoading: false, isProfileComplete: false });
   }, []);
 
   return (

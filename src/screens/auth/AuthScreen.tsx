@@ -48,8 +48,8 @@ export const AuthScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const verify = async () => {
-    if (code.length < 4) {
-      setErr('4桁の認証番号を入力してください');
+    if (code.length < 6) {
+      setErr('6桁の認証番号を入力してください');
       return;
     }
     setErr('');
@@ -97,7 +97,7 @@ export const AuthScreen: React.FC<Props> = ({ navigation }) => {
                   </BigButton>
                 </View>
                 <Text style={styles.authHint}>
-                  ショートメッセージ（SMS）で{'\n'}4桁の番号が届きます
+                  ショートメッセージ（SMS）で{'\n'}6桁の番号が届きます
                 </Text>
               </>
             ) : (
@@ -105,13 +105,13 @@ export const AuthScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={[styles.authHint, { marginBottom: 4 }]}>
                   <Text style={{ fontWeight: '700' }}>{phone}</Text> に送信しました
                 </Text>
-                <Text style={[styles.label, { textAlign: 'center' }]}>届いた4桁の番号を入力</Text>
+                <Text style={[styles.label, { textAlign: 'center' }]}>届いた6桁の番号を入力</Text>
                 <TextInput
-                  placeholder="1234"
+                  placeholder="123456"
                   value={code}
-                  onChangeText={(t) => setCode(t.replace(/[^0-9]/g, '').slice(0, 4))}
+                  onChangeText={(t) => setCode(t.replace(/[^0-9]/g, '').slice(0, 6))}
                   keyboardType="number-pad"
-                  maxLength={4}
+                  maxLength={6}
                   style={[
                     styles.inputCenter,
                     { fontSize: 32, fontWeight: '800', letterSpacing: 12 },

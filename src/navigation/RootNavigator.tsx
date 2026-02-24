@@ -13,6 +13,8 @@ import { MainTabNavigator } from './MainTabNavigator';
 import { CameraScreen } from '@/screens/camera/CameraScreen';
 import { AnalyzingScreen } from '@/screens/analysis/AnalyzingScreen';
 import { ResultScreen } from '@/screens/analysis/ResultScreen';
+import { DetectionFailedScreen } from '@/screens/analysis/DetectionFailedScreen';
+import { AnalysisFailedScreen } from '@/screens/analysis/AnalysisFailedScreen';
 import { MealLogDetailScreen } from '@/screens/record/MealLogDetailScreen';
 import { ProfileEditScreen } from '@/screens/settings/ProfileEditScreen';
 import { LifestyleScreen } from '@/screens/settings/LifestyleScreen';
@@ -66,6 +68,16 @@ export const RootNavigator: React.FC = () => {
               name="Result"
               component={ResultScreen}
               options={{ animation: 'slide_from_right' }}
+            />
+            <Stack.Screen
+              name="DetectionFailed"
+              component={DetectionFailedScreen}
+              options={{ animation: 'fade', gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="AnalysisFailed"
+              component={AnalysisFailedScreen}
+              options={{ animation: 'fade', gestureEnabled: false }}
             />
             <Stack.Screen
               name="MealDetail"

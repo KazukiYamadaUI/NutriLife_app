@@ -2,16 +2,12 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '@/context/AuthContext';
-import { useApp } from '@/context/AppContext';
 import { RootStackParamList } from '@/types';
 import { Header } from '@/components/Header';
 import { Card } from '@/components/Card';
 import {
   UserIcon,
-  ChartIcon,
-  BellIcon,
   ActivityIcon,
-  HeartIcon,
   DocIcon,
 } from '@/components/Icons';
 import { tokens } from '@/theme/tokens';
@@ -82,7 +78,6 @@ const MenuItem: React.FC<{
 
 export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { user, logout } = useAuth();
-  const { healthData } = useApp();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.bg }}>
@@ -134,14 +129,9 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.sectionLabel}>アカウント</Text>
         <View style={styles.menuGroup}>
           <MenuItem
-            label="自分の情報をなおす"
+            label="プロフィール"
             icon={<UserIcon size={22} color={tokens.green} />}
             onPress={() => navigation.navigate('ProfileEdit')}
-          />
-          <MenuItem
-            label="お知らせの設定"
-            icon={<BellIcon size={22} color={tokens.green} />}
-            onPress={() => {}}
           />
         </View>
 
@@ -152,13 +142,6 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             icon={<ActivityIcon size={22} color={tokens.orange} />}
             desc="ふだんの生活スタイルを教えてください"
             onPress={() => navigation.navigate('Lifestyle')}
-          />
-          <MenuItem
-            label="ヘルスケアとつなげる"
-            icon={<HeartIcon size={22} color={tokens.danger} />}
-            desc={healthData?.connected ? '接続中 ✓' : 'iOSヘルスケアと接続'}
-            tag={healthData?.connected ? 'ON' : ''}
-            onPress={() => navigation.navigate('HealthKit')}
           />
         </View>
 

@@ -3,31 +3,25 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   SafeAreaView,
   ActivityIndicator,
   StyleSheet,
-  Alert,
-  Dimensions,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useApp } from '@/context/AppContext';
+import { FoodNotDetectedError } from '@/services/geminiService';
 import { RootStackParamList } from '@/types';
 import { Header } from '@/components/Header';
-import { BigButton } from '@/components/BigButton';
 import {
   CameraIcon,
   ImageIcon,
   ArrowLeftIcon,
-  CheckCircleIcon,
 } from '@/components/Icons';
 import { tokens } from '@/theme/tokens';
 import { styles } from '@/theme/styles';
-
-const { width: SCREEN_W } = Dimensions.get('window');
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Camera'>;
@@ -39,40 +33,31 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
   const { analyzeMeal } = useApp();
   const [mode, setMode] = useState(initMode);
   const [capturing, setCapturing] = useState(false);
-  const [selImg, setSelImg] = useState<{ id: number; emoji: string; label: string; bg: string } | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
-
-  const albumItems = [
-    { id: 1, emoji: '🍛', label: 'カレーライス', bg: '#fef3c7' },
-    { id: 2, emoji: '🍣', label: 'お寿司', bg: '#fce7f3' },
-    { id: 3, emoji: '🥗', label: 'サラダ', bg: '#dcfce7' },
-    { id: 4, emoji: '🍜', label: 'ラーメン', bg: '#fef9c3' },
-    { id: 5, emoji: '🍱', label: 'お弁当', bg: '#e0f2fe' },
-    { id: 6, emoji: '🐟', label: '焼き魚定食', bg: '#f3e8ff' },
-    { id: 7, emoji: '🥪', label: 'サンドイッチ', bg: '#fff7ed' },
-    { id: 8, emoji: '🍙', label: 'おにぎり', bg: '#ecfdf5' },
-    { id: 9, emoji: '🍝', label: 'パスタ', bg: '#fef2f2' },
-  ];
 
   const handleCapture = async () => {
     setCapturing(true);
     try {
       if (cameraRef.current) {
-        const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-        if (photo) {
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.7,
+          base64: true,
+        });
+        if (photo?.base64) {
           navigation.replace('Analyzing');
-          await analyzeMeal(photo.uri);
+          await analyzeMeal(photo.base64, 'image/jpeg');
           navigation.replace('Result');
           return;
         }
       }
-      // Fallback: use mock if camera unavailable
-      navigation.replace('Analyzing');
-      await analyzeMeal('mock://camera');
-      navigation.replace('Result');
-    } catch {
-      navigation.goBack();
+      navigation.replace('AnalysisFailed');
+    } catch (error) {
+      if (error instanceof FoodNotDetectedError) {
+        navigation.replace('DetectionFailed');
+      } else {
+        navigation.replace('AnalysisFailed');
+      }
     }
   };
 
@@ -81,26 +66,20 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         quality: 0.7,
+        base64: true,
       });
-      if (!result.canceled && result.assets[0]) {
+      if (!result.canceled && result.assets[0]?.base64) {
         setCapturing(true);
         navigation.replace('Analyzing');
-        await analyzeMeal(result.assets[0].uri);
+        await analyzeMeal(result.assets[0].base64, 'image/jpeg');
         navigation.replace('Result');
       }
-    } catch {
-      Alert.alert('エラー', '写真の選択に失敗しました');
-    }
-  };
-
-  const handleConfirmAlbum = async () => {
-    setCapturing(true);
-    try {
-      navigation.replace('Analyzing');
-      await analyzeMeal('mock://album');
-      navigation.replace('Result');
-    } catch {
-      navigation.goBack();
+    } catch (error) {
+      if (error instanceof FoodNotDetectedError) {
+        navigation.replace('DetectionFailed');
+      } else {
+        navigation.replace('AnalysisFailed');
+      }
     }
   };
 
@@ -138,71 +117,7 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
 
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-          <TouchableOpacity style={styles.filePickBtn} onPress={handlePickImage}>
-            <ImageIcon size={24} color={tokens.green} />
-            <Text style={{ fontSize: tokens.fontBody, fontWeight: '700', color: tokens.green }}>
-              スマホの写真から選ぶ
-            </Text>
-          </TouchableOpacity>
-          <Text
-            style={{
-              fontSize: tokens.fontSub,
-              fontWeight: '700',
-              color: tokens.textMuted,
-              marginBottom: 10,
-            }}
-          >
-            最近の写真（デモ）
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {albumItems.map((item) => {
-              const w = (SCREEN_W - 32 - 16) / 3;
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  onPress={() => setSelImg(item)}
-                  style={[
-                    styles.albumItem,
-                    {
-                      width: w,
-                      height: w,
-                      backgroundColor: item.bg,
-                      borderColor:
-                        selImg?.id === item.id ? tokens.green : 'transparent',
-                    },
-                  ]}
-                >
-                  <Text style={{ fontSize: 40 }}>{item.emoji}</Text>
-                  <Text
-                    style={{
-                      fontSize: tokens.fontSmall,
-                      fontWeight: '600',
-                      color: tokens.textSub,
-                    }}
-                  >
-                    {item.label}
-                  </Text>
-                  {selImg?.id === item.id && (
-                    <View style={styles.albumCheck}>
-                      <CheckCircleIcon size={18} color="#fff" />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
-
-        <View
-          style={{
-            padding: 20,
-            paddingBottom: 28,
-            borderTopWidth: 2,
-            borderTopColor: tokens.border,
-            backgroundColor: tokens.card,
-          }}
-        >
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           {capturing ? (
             <View
               style={{
@@ -210,23 +125,20 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 10,
-                minHeight: 56,
               }}
             >
               <ActivityIndicator color={tokens.green} />
               <Text style={{ fontSize: tokens.fontBody, fontWeight: '600' }}>
-                記録ありがとうございます！
+                解析中...
               </Text>
             </View>
           ) : (
-            <BigButton
-              onPress={handleConfirmAlbum}
-              disabled={!selImg}
-              color={tokens.orangeBg}
-              style={{ minHeight: 64 }}
-            >
-              {selImg ? `「${selImg.label}」をしらべる` : '写真を選んでね'}
-            </BigButton>
+            <TouchableOpacity style={styles.filePickBtn} onPress={handlePickImage}>
+              <ImageIcon size={24} color={tokens.green} />
+              <Text style={{ fontSize: tokens.fontBody, fontWeight: '700', color: tokens.green }}>
+                スマホの写真から選ぶ
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
       </SafeAreaView>
@@ -349,7 +261,7 @@ export const CameraScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text
               style={{ fontSize: tokens.fontBody, fontWeight: '600', marginTop: 12 }}
             >
-              記録ありがとうございます！
+              解析中...
             </Text>
           </View>
         )}

@@ -60,6 +60,8 @@ export type RootStackParamList = {
   Camera: { mode: 'camera' | 'album' };
   Analyzing: undefined;
   Result: undefined;
+  DetectionFailed: undefined;
+  AnalysisFailed: undefined;
   MealDetail: { log: MealLog };
   ProfileEdit: undefined;
   Lifestyle: undefined;
