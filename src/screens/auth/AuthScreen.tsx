@@ -40,8 +40,9 @@ export const AuthScreen: React.FC<Props> = ({ navigation }) => {
     try {
       await sendCode(phone);
       setStep('code');
-    } catch (e) {
-      setErr('送信に失敗しました。もう一度お試しください。');
+    } catch (e: any) {
+      const msg = e?.message ?? '送信に失敗しました。';
+      setErr(msg);
     } finally {
       setLd(false);
     }
@@ -56,9 +57,9 @@ export const AuthScreen: React.FC<Props> = ({ navigation }) => {
     setLd(true);
     try {
       await verifyCode(phone, code);
-      // Navigation is handled by the RootNavigator based on auth state
-    } catch (e) {
-      setErr('認証に失敗しました。コードを確認してください。');
+    } catch (e: any) {
+      const msg = e?.message ?? '認証に失敗しました。';
+      setErr(msg);
       setLd(false);
     }
   };

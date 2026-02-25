@@ -129,8 +129,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const sendFeedback = useCallback(
     async (logId: string, type: 'good' | 'bad') => {
+      if (!userId) return;
       try {
-        await updateMealLogFeedback(logId, type);
+        await updateMealLogFeedback(userId, logId, type);
         setLogs((prev) =>
           prev.map((l) => (l.id === logId ? { ...l, feedback: type } : l))
         );
@@ -138,7 +139,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.error('Failed to send feedback:', e);
       }
     },
-    []
+    [userId]
   );
 
   const connectHealth = useCallback(async () => {

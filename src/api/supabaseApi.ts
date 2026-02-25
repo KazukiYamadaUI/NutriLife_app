@@ -144,13 +144,15 @@ export async function insertMealLog(
 }
 
 export async function updateMealLogFeedback(
+  userId: string,
   logId: string,
   feedback: 'good' | 'bad'
 ): Promise<void> {
   const { error } = await supabase
     .from('meal_logs')
     .update({ feedback })
-    .eq('id', logId);
+    .eq('id', logId)
+    .eq('user_id', userId);
 
   if (error) throw new Error(`Update feedback failed: ${error.message}`);
 }

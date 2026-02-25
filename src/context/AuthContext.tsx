@@ -91,8 +91,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [loadProfile]);
 
   const sendCode = useCallback(async (phone: string) => {
-    const { error } = await supabase.auth.signInWithOtp({ phone: toE164(phone) });
-    if (error) throw new Error(error.message);
+    const e164 = toE164(phone);
+    console.log('[Auth] signInWithOtp:', e164);
+    const { error } = await supabase.auth.signInWithOtp({ phone: e164 });
+    if (error) {
+      console.error('[Auth] signInWithOtp error:', error.message, error.status);
+      throw error;
+    }
   }, []);
 
   const verifyCode = useCallback(async (phone: string, code: string) => {
@@ -101,7 +106,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       token: code,
       type: 'sms',
     });
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error('[Auth] verifyOtp error:', error.message, error.status);
+      throw error;
+    }
   }, []);
 
   const updateUser = useCallback(
