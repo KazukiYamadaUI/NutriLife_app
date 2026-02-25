@@ -32,5 +32,6 @@ backend/prisma/migrations/
 # IDE
 .idea/
 .vscode/
+.cursor/
 *.swp
 *.swo
