@@ -37,7 +37,19 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "食事の写真を撮影するためにカメラを使用します。"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "食事の写真を選択するためにフォトライブラリにアクセスします。"
+        }
+      ]
     ],
     "extra": {
       "eas": {
