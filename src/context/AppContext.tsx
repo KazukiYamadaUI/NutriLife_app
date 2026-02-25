@@ -53,6 +53,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (!userId) {
       setLogs([]);
+      setCurrentAnalysis(null);
       setLifestyleState({});
       setHealthDataState({ connected: false });
       return;
