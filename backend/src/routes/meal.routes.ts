@@ -2,12 +2,58 @@ import { Router, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../config/database';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { supabaseAuthMiddleware, SupabaseAuthRequest } from '../middleware/supabaseAuth';
 import { upload } from '../middleware/upload';
+import { analyzeLimiter } from '../middleware/rateLimit';
 import { aiService } from '../services/ai.service';
 
 const router = Router();
 
-// All meal routes require authentication
+// POST /api/meals/analyze-base64 (Supabase auth)
+router.post(
+  '/analyze-base64',
+  supabaseAuthMiddleware,
+  analyzeLimiter,
+  async (req: SupabaseAuthRequest, res: Response) => {
+    try {
+      const { base64, mimeType, lifestyle, healthData } = req.body;
+      if (!base64) {
+        res.status(400).json({ error: '画像データが必要です' });
+        return;
+      }
+
+      const analysis = await aiService.analyzeBase64Image(
+        base64,
+        mimeType || 'image/jpeg',
+        { lifestyle: lifestyle || {}, healthData: healthData || {} }
+      );
+
+      res.json({
+        name: analysis.name,
+        cal: analysis.cal,
+        p: analysis.protein,
+        f: analysis.fat,
+        c: analysis.carbs,
+        fiber: analysis.fiber,
+        salt: analysis.salt,
+        score: analysis.score,
+        ingredients: analysis.ingredients,
+        advice: analysis.advice,
+        missing: analysis.missing,
+        praise: analysis.praise,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === 'FOOD_NOT_DETECTED') {
+        res.status(422).json({ error: 'FOOD_NOT_DETECTED' });
+        return;
+      }
+      console.error('Base64 analysis error:', error);
+      res.status(500).json({ error: '食事の解析に失敗しました' });
+    }
+  }
+);
+
+// All remaining meal routes require JWT auth
 router.use(authMiddleware);
 
 // POST /api/meals/analyze
@@ -180,6 +226,28 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Get meal detail error:', error);
     res.status(500).json({ error: '記録の取得に失敗しました' });
+  }
+});
+
+// DELETE /api/meals/:id
+router.delete('/:id', async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { id } = req.params;
+
+    const deleted = await prisma.mealLog.deleteMany({
+      where: { id: id as string, userId },
+    });
+
+    if (deleted.count === 0) {
+      res.status(404).json({ error: '記録が見つかりません' });
+      return;
+    }
+
+    res.json({ message: '記録を削除しました' });
+  } catch (error) {
+    console.error('Delete meal error:', error);
+    res.status(500).json({ error: '記録の削除に失敗しました' });
   }
 });
 

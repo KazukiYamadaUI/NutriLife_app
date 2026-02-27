@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '@/context/AuthContext';
 import { RootStackParamList } from '@/types';
@@ -9,6 +10,7 @@ import {
   UserIcon,
   ActivityIcon,
   DocIcon,
+  BellIcon,
 } from '@/components/Icons';
 import { tokens } from '@/theme/tokens';
 import { styles } from '@/theme/styles';
@@ -77,7 +79,35 @@ const MenuItem: React.FC<{
 );
 
 export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, deleteAccount } = useAuth();
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'アカウントを削除',
+      'アカウントを削除すると、すべてのデータが完全に削除されます。この操作は取り消せません。',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '削除する',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              '本当に削除しますか？',
+              'この操作は元に戻せません。すべての記録が失われます。',
+              [
+                { text: 'やめる', style: 'cancel' },
+                {
+                  text: '完全に削除する',
+                  style: 'destructive',
+                  onPress: () => deleteAccount(),
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: tokens.bg }}>
@@ -145,6 +175,16 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           />
         </View>
 
+        <Text style={styles.sectionLabel}>通知</Text>
+        <View style={styles.menuGroup}>
+          <MenuItem
+            label="食事リマインダー"
+            icon={<BellIcon size={22} color={tokens.blue} />}
+            desc="朝食・昼食・夕食の時間に通知"
+            onPress={() => navigation.navigate('NotifSettings')}
+          />
+        </View>
+
         <Text style={styles.sectionLabel}>そのほか</Text>
         <View style={[styles.menuGroup, { marginBottom: 24 }]}>
           <MenuItem
@@ -153,6 +193,12 @@ export const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             onPress={() => navigation.navigate('Terms')}
           />
           <MenuItem label="ログアウト" onPress={logout} danger />
+          <MenuItem
+            label="アカウントを削除"
+            desc="すべてのデータが完全に削除されます"
+            onPress={handleDeleteAccount}
+            danger
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

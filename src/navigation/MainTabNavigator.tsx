@@ -32,7 +32,7 @@ export const MainTabNavigator: React.FC = () => {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen as any}
+        component={HomeScreen}
         options={{
           tabBarLabel: 'ホーム',
           tabBarIcon: ({ color, size }) => <HomeIcon size={size} color={color} />,
@@ -40,7 +40,7 @@ export const MainTabNavigator: React.FC = () => {
       />
       <Tab.Screen
         name="Record"
-        component={RecordScreen as any}
+        component={RecordScreen}
         options={{
           tabBarLabel: 'きろく',
           tabBarIcon: ({ color, size }) => <ChartIcon size={size} color={color} />,
@@ -48,7 +48,7 @@ export const MainTabNavigator: React.FC = () => {
       />
       <Tab.Screen
         name="Settings"
-        component={SettingsScreen as any}
+        component={SettingsScreen}
         options={{
           tabBarLabel: 'せってい',
           tabBarIcon: ({ color, size }) => <SettingsIcon size={size} color={color} />,

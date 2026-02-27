@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -17,7 +17,9 @@
       "bundleIdentifier": "com.kazuki.nutrilife.app",
       "entitlements": {
         "com.apple.developer.healthkit": true,
-        "com.apple.developer.healthkit.access": ["health-records"]
+        "com.apple.developer.healthkit.access": [
+          "health-records"
+        ]
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -31,7 +33,14 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.kazuki.nutrilife.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -49,7 +58,15 @@
         {
           "photosPermission": "食事の写真を選択するためにフォトライブラリにアクセスします。"
         }
-      ]
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1a5c3a"
+        }
+      ],
+      "@sentry/react-native/expo"
     ],
     "extra": {
       "eas": {

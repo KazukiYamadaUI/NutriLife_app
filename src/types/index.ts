@@ -52,6 +52,28 @@ export interface HealthData {
   lastSynced?: string;
 }
 
+export interface DailyGoals {
+  calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+  fiber: number;
+  salt: number;
+}
+
+export interface NutritionReport {
+  period: 'week' | 'month';
+  totalMeals: number;
+  avgScore: number;
+  avgCalories: number;
+  avgProtein: number;
+  avgFat: number;
+  avgCarbs: number;
+  avgFiber: number;
+  avgSalt: number;
+  trend: 'improving' | 'stable' | 'declining';
+}
+
 // Navigation types
 export type RootStackParamList = {
   Auth: undefined;
@@ -69,6 +91,7 @@ export type RootStackParamList = {
   Terms: undefined;
   MealSettings: undefined;
   NotifSettings: undefined;
+  WeeklyReport: undefined;
 };
 
 export type MainTabParamList = {

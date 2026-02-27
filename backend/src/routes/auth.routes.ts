@@ -5,6 +5,7 @@ import { prisma } from '../config/database';
 import { env } from '../config/env';
 import { smsService } from '../services/sms.service';
 import { AppError } from '../middleware/errorHandler';
+import { authLimiter } from '../middleware/rateLimit';
 
 const router = Router();
 
@@ -18,7 +19,7 @@ const verifySchema = z.object({
 });
 
 // POST /api/auth/send-code
-router.post('/send-code', async (req: Request, res: Response) => {
+router.post('/send-code', authLimiter, async (req: Request, res: Response) => {
   try {
     const { phone } = sendCodeSchema.parse(req.body);
     const code = smsService.generateCode();

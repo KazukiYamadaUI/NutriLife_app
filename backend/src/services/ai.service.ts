@@ -29,7 +29,7 @@ class AiService {
       const contextPrompt = this.buildContextPrompt(context);
 
       const model = this.genAI.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3-flash',
         generationConfig: {
           temperature: 0.3,
           maxOutputTokens: 1000,
@@ -92,6 +92,95 @@ ${contextPrompt}`;
       };
     } catch (error) {
       console.error('Gemini analysis failed:', error);
+      return this.mockAnalysis(context);
+    }
+  }
+
+  async analyzeBase64Image(
+    base64Data: string,
+    mimeType: string,
+    context: AnalysisContext
+  ): Promise<MealAnalysisResult> {
+    if (!this.genAI) {
+      console.warn('Gemini not configured, returning mock analysis');
+      return this.mockAnalysis(context);
+    }
+
+    try {
+      const contextPrompt = this.buildContextPrompt(context);
+
+      const model = this.genAI.getGenerativeModel({
+        model: 'gemini-3-flash',
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 1000,
+        },
+      });
+
+      const systemPrompt = `あなたは栄養管理の専門家AIです。この写真を分析して、以下のJSON形式で回答してください。
+日本語で回答してください。推定値で構いません。
+
+まず写真に食事が写っているかを判定してください。
+- 食事が写っている場合: "detected" を true にし、栄養情報を記入してください。
+- 食事が写っていない場合: "detected" を false にしてください。
+
+{
+  "detected": true または false,
+  "name": "料理名",
+  "cal": 推定カロリー(kcal, 整数),
+  "protein": たんぱく質(g, 小数1桁),
+  "fat": 脂質(g, 小数1桁),
+  "carbs": 炭水化物(g, 小数1桁),
+  "fiber": 食物繊維(g, 小数1桁),
+  "salt": 塩分(g, 小数1桁),
+  "score": 栄養バランススコア(0-100の整数),
+  "ingredients": ["食材1", "食材2", ...],
+  "missing": "不足している主な栄養素",
+  "praise": "褒める一言（絵文字付き）",
+  "advice": "具体的な改善アドバイス（2-3文）"
+}
+${contextPrompt}
+JSONのみ返してください。`;
+
+      const result = await model.generateContent([
+        systemPrompt,
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType,
+          },
+        },
+      ]);
+
+      const content = result.response.text();
+      if (!content) throw new Error('Empty response from Gemini');
+
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Could not parse JSON from response');
+
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      if (parsed.detected === false) {
+        throw new Error('FOOD_NOT_DETECTED');
+      }
+
+      return {
+        name: parsed.name || '不明な料理',
+        cal: Math.round(parsed.cal || 0),
+        protein: Number((parsed.protein || 0).toFixed(1)),
+        fat: Number((parsed.fat || 0).toFixed(1)),
+        carbs: Number((parsed.carbs || 0).toFixed(1)),
+        fiber: Number((parsed.fiber || 0).toFixed(1)),
+        salt: Number((parsed.salt || 0).toFixed(1)),
+        score: Math.min(100, Math.max(0, Math.round(parsed.score || 50))),
+        ingredients: parsed.ingredients || [],
+        missing: parsed.missing || '',
+        praise: parsed.praise || '記録ありがとうございます！📝',
+        advice: parsed.advice || '',
+      };
+    } catch (error) {
+      if (error instanceof Error && error.message === 'FOOD_NOT_DETECTED') throw error;
+      console.error('Gemini base64 analysis failed:', error);
       return this.mockAnalysis(context);
     }
   }

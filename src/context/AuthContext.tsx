@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types';
 import {
   getProfile,
   upsertProfile,
   updateProfile as updateProfileApi,
+  deleteAccount as deleteAccountApi,
 } from '@/api/supabaseApi';
 
 interface AuthState {
@@ -21,6 +23,7 @@ interface AuthContextType extends AuthState {
   updateUser: (user: User) => void;
   completeProfile: (profile: Partial<User>) => void;
   logout: () => void;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -138,6 +141,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setState({ user: null, session: null, isLoading: false, isProfileComplete: false });
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    if (!state.session) return;
+    try {
+      await deleteAccountApi(state.session.user.id);
+    } catch (e) {
+      console.error('Delete account API error:', e);
+    }
+
+    try {
+      await AsyncStorage.clear();
+    } catch (e) {
+      console.error('Failed to clear AsyncStorage:', e);
+    }
+
+    try {
+      const Notifications = require('expo-notifications');
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch {
+      // expo-notifications が利用できない環境では無視
+    }
+
+    await supabase.auth.signOut();
+    setState({ user: null, session: null, isLoading: false, isProfileComplete: false });
+  }, [state.session]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -147,6 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUser,
         completeProfile,
         logout,
+        deleteAccount,
       }}
     >
       {children}

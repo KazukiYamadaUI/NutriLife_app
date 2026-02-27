@@ -17,6 +17,11 @@ const envSchema = z.object({
   // Gemini
   GEMINI_API_KEY: z.string().optional(),
 
+  // Supabase (for JWT verification)
+  SUPABASE_URL: z.string().optional(),
+  SUPABASE_SERVICE_KEY: z.string().optional(),
+  SUPABASE_JWT_SECRET: z.string().optional(),
+
   // Upload
   UPLOAD_DIR: z.string().default('./uploads'),
 

@@ -3,14 +3,16 @@ import cors from 'cors';
 import { env } from './config/env';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
+import { generalLimiter } from './middleware/rateLimit';
 import apiRoutes from './routes';
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+app.use(generalLimiter);
 
 // Health check
 app.get('/api/health-check', (_req, res) => {

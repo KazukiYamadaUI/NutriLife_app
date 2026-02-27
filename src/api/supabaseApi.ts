@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { User, MealLog, MealAnalysis, Lifestyle, HealthData } from '@/types';
+import * as FileSystem from 'expo-file-system';
 
 // ============================================================
 // Profiles
@@ -141,6 +142,118 @@ export async function insertMealLog(
 
   if (error) throw new Error(`Insert meal log failed: ${error.message}`);
   return mealLogRowToMealLog(data!);
+}
+
+export async function deleteMealLog(userId: string, logId: string): Promise<void> {
+  const { error } = await supabase
+    .from('meal_logs')
+    .delete()
+    .eq('id', logId)
+    .eq('user_id', userId);
+
+  if (error) throw new Error(`Delete meal log failed: ${error.message}`);
+}
+
+export async function searchMealLogs(
+  userId: string,
+  query: string
+): Promise<MealLog[]> {
+  const { data, error } = await supabase
+    .from('meal_logs')
+    .select('*')
+    .eq('user_id', userId)
+    .ilike('name', `%${query}%`)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) throw new Error(`Search meal logs failed: ${error.message}`);
+  return (data ?? []).map(mealLogRowToMealLog);
+}
+
+export async function uploadMealImage(
+  userId: string,
+  imageUri: string
+): Promise<string | null> {
+  try {
+    const ext = imageUri.split('.').pop() || 'jpg';
+    const fileName = `${userId}/${Date.now()}.${ext}`;
+    const base64 = await FileSystem.readAsStringAsync(imageUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const { error } = await supabase.storage
+      .from('meal-images')
+      .upload(fileName, decode(base64), {
+        contentType: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error('Image upload failed:', error.message);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('meal-images')
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
+  } catch (e) {
+    console.error('Image upload error:', e);
+    return null;
+  }
+}
+
+function decode(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+export async function deleteAccount(userId: string): Promise<void> {
+  const { error: rpcError } = await supabase.rpc('delete_own_account');
+  if (!rpcError) return;
+
+  console.warn('delete_own_account RPC failed, falling back to manual deletion:', rpcError.message);
+
+  const { error: mealErr } = await supabase
+    .from('meal_logs')
+    .delete()
+    .eq('user_id', userId);
+  if (mealErr) console.error('Failed to delete meal_logs:', mealErr.message);
+
+  const { error: lifestyleErr } = await supabase
+    .from('lifestyles')
+    .delete()
+    .eq('user_id', userId);
+  if (lifestyleErr) console.error('Failed to delete lifestyles:', lifestyleErr.message);
+
+  const { error: healthErr } = await supabase
+    .from('health_data')
+    .delete()
+    .eq('user_id', userId);
+  if (healthErr) console.error('Failed to delete health_data:', healthErr.message);
+
+  try {
+    const { data: files } = await supabase.storage
+      .from('meal-images')
+      .list(userId);
+    if (files && files.length > 0) {
+      const paths = files.map((f) => `${userId}/${f.name}`);
+      await supabase.storage.from('meal-images').remove(paths);
+    }
+  } catch (e) {
+    console.error('Failed to delete meal images from storage:', e);
+  }
+
+  const { error: profileErr } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', userId);
+  if (profileErr) throw new Error(`Account deletion failed: ${profileErr.message}`);
 }
 
 export async function updateMealLogFeedback(

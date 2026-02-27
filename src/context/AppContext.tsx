@@ -6,6 +6,7 @@ import {
   getMealLogs,
   insertMealLog,
   updateMealLogFeedback,
+  deleteMealLog as deleteMealLogApi,
   getLifestyle,
   upsertLifestyle,
   getLatestHealthData,
@@ -18,11 +19,13 @@ interface AppState {
   lifestyle: Lifestyle;
   healthData: HealthData;
   isAnalyzing: boolean;
+  isLoading: boolean;
 }
 
 interface AppContextType extends AppState {
   analyzeMeal: (base64Image: string, mimeType?: string) => Promise<MealAnalysis>;
   addLog: (log: MealLog) => void;
+  deleteMealLog: (logId: string) => Promise<void>;
   setLifestyle: (ls: Lifestyle) => void;
   setHealthData: (hd: HealthData) => void;
   setCurrentAnalysis: (a: MealAnalysis | null) => void;
@@ -30,6 +33,7 @@ interface AppContextType extends AppState {
   sendFeedback: (logId: string, type: 'good' | 'bad') => void;
   connectHealth: () => Promise<HealthData>;
   disconnectHealth: () => void;
+  refreshData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -49,32 +53,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [lifestyle, setLifestyleState] = useState<Lifestyle>({});
   const [healthData, setHealthDataState] = useState<HealthData>({ connected: false });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!userId) {
       setLogs([]);
       setCurrentAnalysis(null);
       setLifestyleState({});
       setHealthDataState({ connected: false });
+      setIsLoading(false);
       return;
     }
 
-    const load = async () => {
-      try {
-        const [fetchedLogs, fetchedLifestyle, fetchedHealth] = await Promise.all([
-          getMealLogs(userId),
-          getLifestyle(userId),
-          getLatestHealthData(userId),
-        ]);
-        setLogs(fetchedLogs);
-        setLifestyleState(fetchedLifestyle);
-        setHealthDataState(fetchedHealth);
-      } catch (e) {
-        console.error('Failed to load user data:', e);
-      }
-    };
-    load();
+    setIsLoading(true);
+    try {
+      const [fetchedLogs, fetchedLifestyle, fetchedHealth] = await Promise.all([
+        getMealLogs(userId),
+        getLifestyle(userId),
+        getLatestHealthData(userId),
+      ]);
+      setLogs(fetchedLogs);
+      setLifestyleState(fetchedLifestyle);
+      setHealthDataState(fetchedHealth);
+    } catch (e) {
+      console.error('Failed to load user data:', e);
+    } finally {
+      setIsLoading(false);
+    }
   }, [userId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const refreshData = useCallback(async () => {
+    await loadData();
+  }, [loadData]);
 
   const analyzeMeal = useCallback(
     async (base64Image: string, mimeType: string = 'image/jpeg') => {
@@ -109,6 +123,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addLog = useCallback((log: MealLog) => {
     setLogs((prev) => [log, ...prev]);
   }, []);
+
+  const deleteMealLog = useCallback(
+    async (logId: string) => {
+      if (!userId) return;
+      try {
+        await deleteMealLogApi(userId, logId);
+        setLogs((prev) => prev.filter((l) => l.id !== logId));
+      } catch (e) {
+        console.error('Failed to delete meal log:', e);
+        throw e;
+      }
+    },
+    [userId]
+  );
 
   const setLifestyle = useCallback(
     async (ls: Lifestyle) => {
@@ -186,8 +214,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         lifestyle,
         healthData,
         isAnalyzing,
+        isLoading,
         analyzeMeal,
         addLog,
+        deleteMealLog,
         setLifestyle,
         setHealthData,
         setCurrentAnalysis,
@@ -195,6 +225,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sendFeedback,
         connectHealth,
         disconnectHealth,
+        refreshData,
       }}
     >
       {children}

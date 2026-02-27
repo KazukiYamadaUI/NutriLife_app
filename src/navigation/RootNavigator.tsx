@@ -20,6 +20,7 @@ import { ProfileEditScreen } from '@/screens/settings/ProfileEditScreen';
 import { LifestyleScreen } from '@/screens/settings/LifestyleScreen';
 import { HealthKitScreen } from '@/screens/settings/HealthKitScreen';
 import { TermsScreen } from '@/screens/settings/TermsScreen';
+import { NotifSettingsScreen } from '@/screens/settings/NotifSettingsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -45,13 +46,10 @@ export const RootNavigator: React.FC = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!user ? (
-          // Auth flow
           <Stack.Screen name="Auth" component={AuthScreen} />
         ) : !isProfileComplete ? (
-          // Profile setup
           <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
         ) : (
-          // Main app
           <>
             <Stack.Screen name="Main" component={MainTabNavigator} />
             <Stack.Screen
@@ -102,6 +100,11 @@ export const RootNavigator: React.FC = () => {
             <Stack.Screen
               name="Terms"
               component={TermsScreen}
+              options={{ animation: 'slide_from_right' }}
+            />
+            <Stack.Screen
+              name="NotifSettings"
+              component={NotifSettingsScreen}
               options={{ animation: 'slide_from_right' }}
             />
           </>

@@ -142,6 +142,11 @@ create policy "Users can delete own meal logs"
   on public.meal_logs for delete
   using (auth.uid() = user_id);
 
+-- profiles (delete)
+create policy "Users can delete own profile"
+  on public.profiles for delete
+  using (auth.uid() = id);
+
 -- lifestyles
 alter table public.lifestyles enable row level security;
 
@@ -157,6 +162,10 @@ create policy "Users can update own lifestyle"
   on public.lifestyles for update
   using (auth.uid() = user_id);
 
+create policy "Users can delete own lifestyle"
+  on public.lifestyles for delete
+  using (auth.uid() = user_id);
+
 -- health_data
 alter table public.health_data enable row level security;
 
@@ -167,3 +176,22 @@ create policy "Users can view own health data"
 create policy "Users can insert own health data"
   on public.health_data for insert
   with check (auth.uid() = user_id);
+
+create policy "Users can delete own health data"
+  on public.health_data for delete
+  using (auth.uid() = user_id);
+
+-- ============================================================
+-- アカウント削除用 RPC (security definer でRLSをバイパス)
+-- ============================================================
+create or replace function public.delete_own_account()
+returns void as $$
+declare
+  uid uuid := auth.uid();
+begin
+  delete from public.meal_logs   where user_id = uid;
+  delete from public.lifestyles  where user_id = uid;
+  delete from public.health_data where user_id = uid;
+  delete from public.profiles    where id = uid;
+end;
+$$ language plpgsql security definer;
